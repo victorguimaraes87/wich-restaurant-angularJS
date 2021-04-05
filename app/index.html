@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.9/angular.min.js"></script>
+<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<style type="text/css">
+  .jumbotron {
+    width: 400px;
+    text-align: center;
+    margin-top: 20px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+<body>
+
+<div ng-app="App">
+  <div ng-controller="restaurantCtrl" class="jumbotron">
+      <h4>{{appname}}</h4>
+      <div class= "dropdown">
+      <select ng-model="selectedRestaurant" class="form-control">
+          <option ng-repeat="restaurant in restaurants | filter: alredyChosen(restaurant.chosenWeek) " value="{{restaurant.rest_id}}">{{restaurant.name}}</option>
+      </select>
+    </div>
+      <input type="text" ng-model="matricula" class= "form-control" placeholder="Digite sua matrícula">
+      <br>
+      <button ng-click="vote()" class="btn btn-primary">Votar</button>
+      <button ng-click="encerar()" class="btn btn-primary">Encerar</button>
+      <br>
+      <label>{{message}}</label>
+      <label>{{voceVotou}}</label>
+      <label>{{resultado}}</label>
+  </div>
+</div>
+
+<script>
+    var app = angular.module('App', []);
+    app.controller('restaurantCtrl', function ($scope) {
+    $scope.restaurants = [
+      {"rest_id": 1, "name": "restaurante 1", "votes": 0, "chosenWeek": 0, "disableWeek": false},
+      {"rest_id": 2, "name": "restaurante 2", "votes": 0, "chosenWeek": 0, "disableWeek": false}, 
+      {"rest_id": 3, "name": "restaurante 3", "votes": 0, "chosenWeek": 0, "disableWeek": false},
+      {"rest_id": 4, "name": "restaurante 4", "votes": 0, "chosenWeek": 0, "disableWeek": false},
+      {"rest_id": 5, "name": "restaurante 5", "votes": 0, "chosenWeek": 0, "disableWeek": false},
+      {"rest_id": 6, "name": "restaurante 6", "votes": 0, "chosenWeek": 0, "disableWeek": false},
+      {"rest_id": 7, "name": "restaurante 7", "votes": 0, "chosenWeek": 0, "disableWeek": false},
+
+    ];
+     $scope.employees = [
+      {"resgister": 1, "date_last_vote": ""},
+      {"resgister": 2, "date_last_vote": ""}, 
+      {"resgister": 3, "date_last_vote": ""},
+      {"resgister": 4, "date_last_vote": ""}
+    ];
+      $scope.message   = "";
+      $scope.resultado = "";
+      $scope.appname = "Qual restaurante?"
+      $scope.vote = function () {
+      $scope.resultado = "";
+      $scope.message = "";
+      var existe = false;
+
+      for(var k in $scope.employees) {
+
+          if ($scope.employees[k]['resgister'] == $scope.matricula) {
+
+              if ($scope.employees[k]['date_last_vote'] === new Date().getDate()) {
+                  $scope.message = "já votou";
+                  return false;
+              }
+              $scope.employees[k]['date_last_vote'] = new Date().getDate();
+              existe = true;        
+            }
+      }
+
+      if (!existe) {
+        $scope.message = "Matrícula não existe";
+        return false;
+      }
+      
+      for(var k in $scope.restaurants) {
+            
+            if ($scope.restaurants[k]['rest_id'] == $scope.selectedRestaurant) {
+                $scope.restaurants[k]['votes'] += 1; 
+                $scope.voceVotou = 'Voto em .:' + $scope.restaurants[k]['name']
+            }
+        }
+
+        this.computarVoto()      
+    }
+
+    $scope.computarVoto = function () {
+      var maisvotado = "";
+      var totalVotos = 0;
+
+      for(var k in $scope.restaurants) {
+        if ($scope.restaurants[k]['votes'] > totalVotos) {
+            totalVotos = $scope.restaurants[k]['votes'];
+        } 
+      }
+      $scope.resultado = "Mais votado .:";
+
+      for(var k in $scope.restaurants) {
+        if ($scope.restaurants[k]['votes'] == totalVotos) {
+             $scope.resultado += $scope.restaurants[k]['name'] + '-';
+        } 
+      }
+    }
+
+    $scope.encerar = function () {
+      var occurences = $scope.resultado.split('-').length -1;
+      var winner;
+      if (occurences > 1 ) {
+         $scope.resultado  = "Empate";
+         $scope.voceVotou = "";
+         return false; 
+      }
+  
+      winner = $scope.resultado.replace("Mais votado .:","");
+      winner = winner.replace("-","");
+  
+      var week = this.getWeekOfYear();
+
+      for(var k in $scope.restaurants) {
+        if ($scope.restaurants[k]['name'] == winner) {
+            $scope.restaurants[k]['chosenWeek'] = week;
+            $scope.restaurants[k]['disableWeek'] = true;
+        }
+      }
+
+
+      $scope.alredyChosen = function (item) {
+          var week = this.getWeekOfYear();
+          return item.chosenWeek != week;
+      }
+
+    } 
+
+    $scope.getWeekOfYear = function () {
+
+      const today = new Date();
+      const firstDayOfYear = new Date(today.getFullYear(), 0, 1);
+      const pastDaysOfYear = (today - firstDayOfYear) / 86400000;
+      return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+
+    }     
+  });
+
+
+</script>
+
+</body>
+</html>
